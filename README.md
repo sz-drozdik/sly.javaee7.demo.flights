@@ -9,7 +9,7 @@ The application contains only one page where one can
 
 There are some automatics demonstrating different aspects of the technology:
 * At first start, the system creates some dummy airports, aircrafts and flights automatically.
-* If just schedule a flight, it will depart and land automatically on time.
+* If you schedule a flight, it will depart and land automatically on time.
 * Views (flight tables) are refreshed automatically when a flight created, updated or deleted.
 
 The project is about 80% ready.
@@ -18,12 +18,12 @@ The project is about 80% ready.
 
 ### Environment
 
-IDE: 		Red Hat JBoss Developer Studio 11.3.0.GA
-Project: 	Gradle driven
-Language:   Java 8 or higher
-Container:  WildFly 12 with Java EE 8
-Web:		PrimeFaces 6.2
-Testing:    JUnit4 and Arquillian
+* IDE: 		Red Hat JBoss Developer Studio 11.3.0.GA
+* Project: 	Gradle driven
+* Language:   Java 8 or higher
+* Container:  WildFly 12 with Java EE 8
+* Web:		PrimeFaces 6.2
+* Testing:    JUnit4 and Arquillian
 
 ### Installing
 
