@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:o="http://omnifaces.org/ui"
+	xmlns:of="http://omnifaces.org/functions"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<f:view>
+
+	<h:head>
+		<f:facet name="first">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+			<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+			<meta name="viewport"
+				content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+		</f:facet>
+		<title>Flight Control</title>
+		<h:outputStylesheet library="css" name="design.css" />
+		<h:outputScript library="js" name="utility.js" />
+	</h:head>
+
+	<h:body>
+
+		<ui:param name="datePattern" value="dd MMMMM yy" />
+		<ui:param name="timePattern" value="hh:mm a" />
+
+		<p:outputPanel style="float: right">
+			<h:outputText value="Local Time: " />
+			<p:clock pattern="#{datePattern} #{timePattern}" />
+		</p:outputPanel>
+
+		<p:growl id="growl" showDetail="true" autoUpdate="true" />
+
+		<h:form id="air">
+
+			<o:socket channel="flightsEvents" onmessage="socketListener" />
+			<p:remoteCommand name="socketFired" action="#{echo.echo}" update="flightsTable"/>
+
+			<p:panel header="Filtering" style="float: left">
+				<p:outputLabel for="from" styleClass="bold"
+					value="Show Departures Between: " />
+				<p:calendar id="from" value="#{flightsView.filters.dateFrom}"
+					pattern="#{datePattern} #{timePattern}">
+				</p:calendar>
+				<h:outputText value=" and " />
+				<p:calendar id="to" value="#{flightsView.filters.dateTo}"
+					pattern="#{datePattern} #{timePattern}">
+				</p:calendar>
+				<p:commandButton icon="ui-icon-search" value="Filter"
+					style="margin-left: 1em" update="flightsTable" />
+			</p:panel>
+
+			<p:commandButton icon="ui-icon-plus" value="Schedule New Flight"
+				style="float: right; margin-top: 1em"
+				action="#{flightsView.prepareNew}" update="detail"
+				oncomplete="PF('dialog').show()" />
+
+			<p:panel style="clear: both" header="Flights" styleClass="flightsPanel">
+				<p:dataTable id="flightsTable" 
+					var="flight"
+					value="#{flightsView.flights}" 
+					lazy="true"
+					multiViewState="true" 
+					selectionMode="single"
+					selection="#{flightsView.selectedFlight}"
+					rowKey="#{flightsView.flights.getRowKey(flight)}"
+					paginator="true" rows="10"
+					currentPageReportTemplate="({startRecord}-{endRecord}) / {totalRecords} ::: {currentPage} / {totalPages}"
+					paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+					rowsPerPageTemplate="10,50,200" >
+
+					<p:column headerText="Date">
+						<h:outputText value="#{flight.scheduledTimeDeparture}">
+							<f:convertDateTime pattern="#{datePattern}" />
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="Flight">
+						<h:outputText value="#{flight.code}" />
+					</p:column>
+
+					<p:column headerText="From">
+						<h:outputText value="#{flight.from.code}" />
+					</p:column>
+
+					<p:column headerText="To">
+						<h:outputText value="#{flight.to.code}" />
+					</p:column>
+
+					<p:column headerText="Aircraft">
+						<h:outputText value="#{flight.aircraft.code}" />
+					</p:column>
+
+					<p:column headerText="Flight time">
+						<h:outputText value="#{flight.minutes}" />
+					</p:column>
+
+					<p:column id="std">
+						<f:facet name="header">
+							<h:outputText value="STD" />
+							<p:tooltip value="Scheduled Time Departure" for="std" />
+						</f:facet>
+						<h:outputText value="#{flight.scheduledTimeDeparture}">
+							<f:convertDateTime pattern="#{timePattern}" />
+						</h:outputText>
+					</p:column>
+
+					<p:column id="atd">
+						<f:facet name="header">
+							<h:outputText value="ATD" />
+							<p:tooltip value="Actual Time Departure" for="atd" />
+						</f:facet>
+						<h:outputText value="#{flight.actualTimeDeparture}">
+							<f:convertDateTime pattern="#{timePattern}" />
+						</h:outputText>
+					</p:column>
+
+					<p:column id="sta">
+						<f:facet name="header">
+							<h:outputText value="STA" />
+							<p:tooltip value="Scheduled Time Arrival" for="sta" />
+						</f:facet>
+						<h:outputText value="#{flight.scheduledTimeArrival}">
+							<f:convertDateTime pattern="#{timePattern}" />
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="Status">
+						<h:outputText value="#{flight.status}" />
+					</p:column>
+
+					<p:column id="ata">
+						<f:facet name="header">
+							<h:outputText value="ATA" />
+							<p:tooltip value="Actual Time Arrival" for="ata" />
+						</f:facet>
+						<h:outputText value="#{flight.actualTimeArrival}">
+							<f:convertDateTime pattern="#{timePattern}" />
+						</h:outputText>
+					</p:column>
+
+				</p:dataTable>
+			</p:panel>
+
+			<p:contextMenu for="flightsTable">
+				<p:menuitem value="Edit" update="detail"
+					action="#{flightsView.prepareUpdate}" icon="ui-icon-search"
+					oncomplete="PF('dialog').show()" />
+				<p:menuitem value="Delete" update="flightsTable"
+					icon="ui-icon-close" action="#{flightsView.delete}" />
+			</p:contextMenu>
+
+			<p:dialog header="Flight Data" widgetVar="dialog" modal="true"
+				showEffect="fade" hideEffect="fade" resizable="false"
+				closable="false" focus="inpStatus">
+				<p:outputPanel id="detail" style="text-align:center;">
+					<p:panelGrid columns="2" rendered="#{flightsView.editing}"
+						columnClasses="dialogLabel, dialogValue">
+
+						<h:outputText value="Flight:" />
+						<h:outputText value="#{flightsView.editingFlight.code}" />
+
+						<h:outputText value="From:" />
+						<h:outputText value="#{flightsView.editingFlight.from}" />
+
+						<h:outputText value="To:" />
+						<h:outputText value="#{flightsView.editingFlight.to}" />
+
+						<h:outputText value="Aircraft:" />
+						<h:outputText value="#{flightsView.editingFlight.aircraft}" />
+
+						<h:outputText value="Scheduled Time Departure:" />
+						<p:calendar
+							value="#{flightsView.editingFlight.scheduledTimeDeparture}"
+							pattern="#{datePattern} #{timePattern}">
+						</p:calendar>
+
+						<h:outputText value="Actual Time Departure:" />
+						<p:calendar
+							value="#{flightsView.editingFlight.actualTimeDeparture}"
+							pattern="#{datePattern} #{timePattern}">
+						</p:calendar>
+
+						<h:outputText value="Scheduled Time Arrival" />
+						<p:calendar
+							value="#{flightsView.editingFlight.scheduledTimeArrival}"
+							pattern="#{datePattern} #{timePattern}">
+						</p:calendar>
+
+						<h:outputText value="Status:" />
+						<p:outputPanel>
+							<p:inputText id="inpStatus"
+								value="#{flightsView.editingFlight.status}"
+								validator="statusValidator" />
+							<p:message class="dialogInput" for="inpStatus" />
+						</p:outputPanel>
+
+						<h:outputText value="Actual Time Arrival" />
+						<p:calendar value="#{flightsView.editingFlight.actualTimeArrival}"
+							pattern="#{datePattern} #{timePattern}">
+						</p:calendar>
+
+					</p:panelGrid>
+
+					<p:commandButton icon="ui-icon-disk" value="Save"
+						action="#{flightsView.save}"
+						oncomplete="hideOrShake(args, PF('dialog'))"
+						update="flightsTable @(.dialogInput)" />
+					<p:commandButton icon="ui-icon-cancel" value="Cancel" process="@none"
+						immediate="true" oncomplete="PF('dialog').hide()" />
+
+				</p:outputPanel>
+
+			</p:dialog>
+		</h:form>
+	</h:body>
+</f:view>
+</html>
