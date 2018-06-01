@@ -1,6 +1,5 @@
 package sly.javaee7.commons.crud;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.ejb.Stateless;
@@ -31,12 +30,7 @@ public class Queries {
 		CriteriaBuilder qb = em.getCriteriaBuilder();
 		CriteriaQuery<Long> cq = qb.createQuery(Long.class);
 		cq.select(qb.count(cq.from(clazz)));
-		long result = 0;
-		try {
-			result = em.createQuery(cq).getSingleResult();
-		} catch (Exception e) {
-			//
-		}
+		long result = em.createQuery(cq).getSingleResult();
 		return result;
 	}
 
@@ -44,11 +38,6 @@ public class Queries {
 		CriteriaBuilder qb = em.getCriteriaBuilder();
 		CriteriaQuery<Object> cq = qb.createQuery(Object.class);
 		cq.select(cq.from(clazz).get("id"));
-		try {
-			return em.createQuery(cq).getResultList();
-		} catch (Exception e) {
-			//
-		}
-		return Collections.emptyList();
+		return em.createQuery(cq).getResultList();
 	}
 }

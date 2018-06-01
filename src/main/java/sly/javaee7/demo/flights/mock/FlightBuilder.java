@@ -13,6 +13,7 @@ import org.apache.commons.lang3.RandomUtils;
 import sly.javaee7.commons.crud.Identifiable;
 import sly.javaee7.commons.crud.Operations;
 import sly.javaee7.commons.crud.Queries;
+import sly.javaee7.commons.exc.ExceptionController;
 import sly.javaee7.demo.flights.model.Aircraft;
 import sly.javaee7.demo.flights.model.Airport;
 import sly.javaee7.demo.flights.model.Flight;
@@ -44,20 +45,20 @@ public class FlightBuilder {
 	private Operations ops;
 
 	@Inject
+	private ExceptionController exc;
+
+	@Inject
 	private Queries q;
 
-	public <T extends Identifiable> T createIdentifiable(Class<T> clazz, Supplier<String> supp) {
-		T item = null;
+	private <T extends Identifiable> T createIdentifiable(Class<T> clazz, Supplier<String> supp) {		
 		try {
-			item = clazz.newInstance();
-		} catch (InstantiationException e) {
-			//
-		} catch (IllegalAccessException e) {
-			//
-		}
-		item.setCode(supp.get());
-		ops.create(item);
-		return item;
+			T item = clazz.newInstance();
+			item.setCode(supp.get());
+			ops.create(item);
+			return item;
+		} catch (InstantiationException | IllegalAccessException e) {			
+			throw exc.wrappedException("Error creating data: " + (clazz == null ? "missing datatype" : clazz.getName()), e);
+		}		
 	}
 
 	public Aircraft createRandomAircraft() {

@@ -16,7 +16,7 @@ repositories {
 project.webAppDirName = 'WebContent'
 
 dependencies {
-    providedCompile 'javax:javaee-api:7.0'
+    providedCompile 'javax:javaee-api:8.0'
     
     compile 'org.primefaces:primefaces:6.2'    
     compile 'org.primefaces.themes:all-themes:1.0.10'    

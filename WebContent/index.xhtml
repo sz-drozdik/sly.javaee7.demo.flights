@@ -37,8 +37,19 @@
 
 		<h:form id="air">
 
+			<ui:fragment rendered="false">
+				<p:commandButton icon="ui-icon-search" value="Error"
+					action="#{flightsView.err}" />
+				<p:commandButton icon="ui-icon-search" value="Error P"
+					action="#{flightsView.err}" ajax="false" />
+			</ui:fragment>
+
+			<p:ajaxExceptionHandler type="java.lang.Exception"
+				update="exceptionDialog" onexception="PF('exceptionDialog').show();" />
+
 			<o:socket channel="flightsEvents" onmessage="socketListener" />
-			<p:remoteCommand name="socketFired" action="#{echo.echo}" update="flightsTable"/>
+			<p:remoteCommand name="socketFired" action="#{echo.echo}"
+				update="flightsTable" />
 
 			<p:panel header="Filtering" style="float: left">
 				<p:outputLabel for="from" styleClass="bold"
@@ -59,19 +70,16 @@
 				action="#{flightsView.prepareNew}" update="detail"
 				oncomplete="PF('dialog').show()" />
 
-			<p:panel style="clear: both" header="Flights" styleClass="flightsPanel">
-				<p:dataTable id="flightsTable" 
-					var="flight"
-					value="#{flightsView.flights}" 
-					lazy="true"
-					multiViewState="true" 
-					selectionMode="single"
-					selection="#{flightsView.selectedFlight}"
-					rowKey="#{flightsView.flights.getRowKey(flight)}"
-					paginator="true" rows="10"
+			<p:panel style="clear: both" header="Flights"
+				styleClass="flightsPanel">
+				<p:dataTable id="flightsTable" var="flight"
+					value="#{flightsView.flights}" lazy="true" multiViewState="true"
+					selectionMode="single" selection="#{flightsView.selectedFlight}"
+					rowKey="#{flightsView.flights.getRowKey(flight)}" paginator="true"
+					rows="10"
 					currentPageReportTemplate="({startRecord}-{endRecord}) / {totalRecords} ::: {currentPage} / {totalPages}"
 					paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-					rowsPerPageTemplate="10,50,200" >
+					rowsPerPageTemplate="10,50,200">
 
 					<p:column headerText="Date">
 						<h:outputText value="#{flight.scheduledTimeDeparture}">
@@ -210,12 +218,26 @@
 						action="#{flightsView.save}"
 						oncomplete="hideOrShake(args, PF('dialog'))"
 						update="flightsTable @(.dialogInput)" />
-					<p:commandButton icon="ui-icon-cancel" value="Cancel" process="@none"
-						immediate="true" oncomplete="PF('dialog').hide()" />
+					<p:commandButton icon="ui-icon-cancel" value="Cancel"
+						process="@none" immediate="true" oncomplete="PF('dialog').hide()" />
 
 				</p:outputPanel>
 
 			</p:dialog>
+
+			<p:dialog id="exceptionDialog"
+				header="Exception '#{pfExceptionHandler.type}' occured!"
+				widgetVar="exceptionDialog" height="500px">
+        Message: #{pfExceptionHandler.message} <br />
+        StackTrace: <h:outputText
+					value="#{pfExceptionHandler.formattedStackTrace}" escape="false" />
+				<br />
+
+				<p:button onclick="document.location.href = document.location.href;"
+					value="Reload!"
+					rendered="#{pfExceptionHandler.type == 'javax.faces.application.ViewExpiredException'}" />
+			</p:dialog>
+
 		</h:form>
 	</h:body>
 </f:view>

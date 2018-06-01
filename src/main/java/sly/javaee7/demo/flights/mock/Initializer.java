@@ -12,6 +12,7 @@ import javax.ejb.TimerService;
 import javax.inject.Inject;
 
 import sly.javaee7.commons.crud.Queries;
+import sly.javaee7.commons.exc.ExceptionController;
 import sly.javaee7.demo.flights.model.Flight;
 
 @Startup
@@ -25,7 +26,10 @@ public class Initializer {
 	private Queries q;
 
 	@Resource
-	TimerService timerService;
+	private TimerService timerService;
+
+	@Resource
+	private ExceptionController exc;
 
 	@Timeout
 	private void check() {
@@ -68,6 +72,7 @@ public class Initializer {
 
 	@PostConstruct
 	private void init() {
+		// delayed execution to avoid startup race conditions
 		timerService.createSingleActionTimer(3 * 1000, new TimerConfig(null, false));
 	}
 

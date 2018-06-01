@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+<h1>
+	<h:outputText value="Exception '#{pfExceptionHandler.type}' occured!"
+		escape="false" />
+</h1>
+
+<h:outputText value="Message: #{pfExceptionHandler.message}"
+	escape="false" />
+<br />
+<h:outputText
+	value="StackTrace: #{pfExceptionHandler.formattedStackTrace}"
+	escape="false" />
+</html>

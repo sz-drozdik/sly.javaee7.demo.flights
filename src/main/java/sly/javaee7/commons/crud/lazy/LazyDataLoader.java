@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -16,6 +17,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
+
+import sly.javaee7.commons.exc.ExceptionController;
 
 @Dependent
 public class LazyDataLoader {
@@ -62,12 +65,7 @@ public class LazyDataLoader {
 			cq.where(predicate);
 		}
 
-		Long result = null;
-		try {
-			result = em.createQuery(cq).getSingleResult();
-		} catch (Exception e) {
-
-		}
+		Long result = em.createQuery(cq).getSingleResult();
 
 		return result;
 
@@ -77,7 +75,19 @@ public class LazyDataLoader {
 		return rest.getCriterias(cb, cq, from);
 	}
 
+	@Inject
+	private ExceptionController exc;
+
 	public <T> LoadResult<T> load(Class<T> clazz, Criterias<T> rest, int first, int pageSize, String sortField,
+			int sortOrder) {
+		try {
+			return loadTry(clazz, rest, first, pageSize, sortField, sortOrder);
+		} catch (Exception e) {
+			throw exc.wrappedException("Error loading data: " + (clazz == null ? "missing datatype" : clazz.getName()), e);
+		}
+	}
+
+	private <T> LoadResult<T> loadTry(Class<T> clazz, Criterias<T> rest, int first, int pageSize, String sortField,
 			int sortOrder) {
 
 		LoadResult<T> loadResult = new LoadResult<>();
@@ -105,23 +115,12 @@ public class LazyDataLoader {
 
 		List<T> r = new ArrayList<>();
 
-		TypedQuery<T> tq = null;
-		try {
-			tq = em.createQuery(select);
-		} catch (Exception e) {
-			loadResult.rowCount = 0;
-			loadResult.resultList = r;
-			return loadResult;
-		}
+		TypedQuery<T> tq = em.createQuery(select);
 
 		loadResult.rowCount = getRecordCount(clazz, rest).intValue();
 
 		if (loadResult.rowCount > 0) {
-			try {
-				r = tq.setFirstResult(first).setMaxResults(pageSize).getResultList();
-			} catch (Exception e) {
-
-			}
+			r = tq.setFirstResult(first).setMaxResults(pageSize).getResultList();
 		}
 
 		loadResult.resultList = r;

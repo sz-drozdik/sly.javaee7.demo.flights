@@ -79,6 +79,10 @@ public class FlightsView implements Serializable {
 		operationMode = LCOperation.Delete;
 		commitLCOperation();
 	}
+	
+	public void err() {
+		loader.load(null, null, 0, 0, null, 0);
+	}
 
 	public Flight getEditingFlight() {
 		if (operationTarget == null) {
